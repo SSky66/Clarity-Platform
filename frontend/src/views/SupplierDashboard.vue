@@ -49,7 +49,7 @@ const acceptanceCount = computed(() => stats.value.acceptance || 0)
 async function fetchUser() {
   try {
     const res = await getMe()
-    authStore.user = res
+    authStore.updateUser(res)
   } catch (e) {
     console.error('获取用户信息失败', e)
   }
@@ -223,6 +223,7 @@ onMounted(loadAll)
         role="SUPPLIER"
         @switch-section="switchSection"
         @recharge="showRechargeModal = true"
+        @wallet-assigned="fetchUser"
       />
 
       <main class="flex-1 overflow-y-auto bg-slate-100 p-8">

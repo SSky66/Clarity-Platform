@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { listChainEventsV2, getChainEventDetail, getChainStats } from '@/api/chain'
+import { getMe } from '@/api/auth'
 import { useToastStore } from '@/stores/toast'
 import AppHeader from '@/components/AppHeader.vue'
 import Sidebar from '@/components/Sidebar.vue'
@@ -146,6 +147,15 @@ function handleRecharged() {
   showRechargeModal.value = false
 }
 
+async function fetchUser() {
+  try {
+    const res = await getMe()
+    authStore.updateUser(res)
+  } catch (e) {
+    console.error('获取用户信息失败', e)
+  }
+}
+
 function logout() {
   authStore.logout()
   router.push('/login')
@@ -185,6 +195,7 @@ onMounted(() => {
         :role="authStore.userRole || 'MANUFACTURER'"
         @switch-section="goToDashboard"
         @recharge="showRechargeModal = true"
+        @wallet-assigned="fetchUser"
       />
 
       <main class="flex-1 overflow-y-auto bg-slate-100 p-8">

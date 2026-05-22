@@ -54,7 +54,7 @@ const totalLocked = ref(45200)
 async function fetchUser() {
   try {
     const res = await getMe()
-    authStore.user = res
+    authStore.updateUser(res)
   } catch (e) {
     console.error('获取用户信息失败', e)
   }

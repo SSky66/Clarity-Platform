@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
-import { listUsers } from '@/api/auth'
+import { listUsers, assignWallet } from '@/api/auth'
 import { listTasks, createAppeal } from '@/api/tasks'
 import { listChainEventsV2, getChainStats } from '@/api/chain'
 import { listPendingAppeals, resolveAppeal, assignArbitrator } from '@/api/appeals'
@@ -198,6 +198,34 @@ function logout() {
   router.push('/login')
 }
 
+const assigningWallet = ref(false)
+
+async function handleAssignWallet() {
+  if (assigningWallet.value) return
+  assigningWallet.value = true
+  try {
+    const res = await assignWallet()
+    authStore.updateUser(res)
+    toast.success('链上钱包分配成功！')
+  } catch (e) {
+    console.error('分配钱包失败', e)
+    const detail = e.response?.data?.detail
+    const msg = typeof detail === 'string' ? detail : JSON.stringify(detail)
+    toast.error('分配失败: ' + (msg || e.message))
+  } finally {
+    assigningWallet.value = false
+  }
+}
+
+function copyWalletAddress() {
+  if (!user.value?.wallet_address) return
+  navigator.clipboard.writeText(user.value.wallet_address).then(() => {
+    toast.success('钱包地址已复制到剪贴板')
+  }).catch(() => {
+    toast.error('复制失败')
+  })
+}
+
 function formatHash(hash) {
   if (!hash || typeof hash !== 'string') return hash
   if (hash.startsWith('0x') && hash.length > 12) {
@@ -232,6 +260,42 @@ onMounted(fetchData)
           <p class="text-sm text-slate-600 mt-1">
             欢迎回来，{{ user?.display_name || '系统管理员' }} — 系统全局监控与账号管理
           </p>
+          <div class="text-[10px] mt-2 flex items-center gap-1">
+            <span
+              :class="user?.wallet_address ? 'text-slate-400' : 'text-rose-500 font-bold'"
+            >
+              链上地址: {{ user?.wallet_address ? formatHash(user.wallet_address) : '未分配' }}
+            </span>
+            <!-- 已分配：复制按钮 -->
+            <div v-if="user?.wallet_address" class="relative group">
+              <button
+                @click="copyWalletAddress"
+                class="text-slate-400 hover:text-slate-600 transition-colors p-0.5"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+              <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                复制钱包地址
+              </div>
+            </div>
+            <!-- 未分配：刷新按钮 -->
+            <button
+              v-else
+              @click="handleAssignWallet"
+              :disabled="assigningWallet"
+              class="text-rose-500 hover:text-rose-700 transition-colors p-0.5 disabled:opacity-50"
+              title="分配链上钱包"
+            >
+              <svg v-if="!assigningWallet" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              <svg v-else class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="flex bg-white border border-slate-200 rounded-sm overflow-hidden">
           <button

@@ -76,13 +76,18 @@ async function handleRegister() {
   }
 
   try {
-    await apiRegister({
+    const res = await apiRegister({
       account,
       password,
       display_name: company,
       role: role.toUpperCase()
     })
-    toast.success('注册成功！请使用新账号登录。')
+    const hasWallet = !!res.wallet_address
+    if (hasWallet) {
+      toast.success('注册成功！链上钱包已自动分配。请使用新账号登录。')
+    } else {
+      toast.success('注册成功！链上钱包暂未分配，登录后可在侧边栏刷新。请使用新账号登录。')
+    }
     loginForm.value.account = account
     activeTab.value = 'login'
   } catch (e) {
@@ -298,7 +303,7 @@ function initThree() {
         <div class="text-center mt-2">
           <h1 class="text-2xl font-bold text-slate-900 tracking-wide mb-2">Clarity 澄澈系统</h1>
           <p class="text-xs text-slate-500 leading-relaxed font-medium">
-            面向高端制造的工业视觉模型审计协议<br>
+            面向制造企业的工业视觉模型审计协议<br>
             <span class="text-[10px] opacity-70 mt-1 block tracking-widest uppercase font-mono">Zero-Trust Technical Notary</span>
           </p>
         </div>

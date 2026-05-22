@@ -86,8 +86,7 @@ async function handleRestoreAdmin() {
   try {
     // 重新获取ADMIN用户信息
     const me = await getMe()
-    authStore.user = me
-    localStorage.setItem('clarity_user', JSON.stringify(me))
+    authStore.updateUser(me)
     toast.success('已恢复ADMIN身份')
     window.location.href = '/admin'
   } catch (e) {

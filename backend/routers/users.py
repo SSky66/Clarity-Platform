@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+import uuid
 
 from models import User, UserRole, BASE_REPUTATION, get_db
 from schemas import UserResponse
 from core.deps import get_current_user
+from chain import create_wallet, check_wallet_exists
 
 router = APIRouter(prefix="/api/users", tags=["用户"])
 
@@ -82,3 +84,43 @@ def recharge(
     current_user.balance += amount
     db.commit()
     return {"new_balance": current_user.balance}
+
+
+@router.post("/me/assign-wallet", response_model=UserResponse)
+def assign_wallet(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    为当前用户分配/刷新链上钱包地址
+    - 如果用户已有钱包地址，直接返回（幂等）
+    - 如果没有，尝试创建新钱包或复用 WeBASE-Front 中已有的同名钱包
+    """
+    # 已有有效地址，直接返回
+    if current_user.wallet_address:
+        return current_user
+
+    sign_user_id = f"clarity_{current_user.account}_{uuid.uuid4().hex[:8]}"
+
+    try:
+        # 先检查 WeBASE-Front 是否已有同名钱包可复用
+        exists_info = check_wallet_exists(sign_user_id)
+        if exists_info.get("address"):
+            current_user.wallet_address = exists_info["address"]
+            db.commit()
+            db.refresh(current_user)
+            return current_user
+
+        # 没有则创建新钱包
+        wallet = create_wallet(sign_user_id)
+        if wallet and wallet.get("address"):
+            current_user.wallet_address = wallet["address"]
+            db.commit()
+            db.refresh(current_user)
+            return current_user
+        else:
+            raise HTTPException(status_code=503, detail="链上钱包创建失败，WeBASE-Front 可能未连接")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"链上服务异常: {str(e)}")

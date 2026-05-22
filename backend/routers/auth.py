@@ -10,28 +10,53 @@ from models import (
 from schemas import UserCreate, UserResponse, UserLogin
 from core.security import hash_password, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from core.deps import get_current_user
-from chain import create_wallet
+from chain import create_wallet, check_wallet_exists
 
 router = APIRouter(prefix="/api/auth", tags=["认证"])
 
 
+def _is_chain_available() -> bool:
+    """检查 WeBASE-Front 是否可连接"""
+    try:
+        import requests
+        from chain import WEBASE_FRONT_URL
+        resp = requests.get(f"{WEBASE_FRONT_URL}/WeBASE-Front/1/web3/clientVersion", timeout=3)
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
 @router.post("/register", response_model=UserResponse)
 def register(payload: UserCreate, db: Session = Depends(get_db)):
-    """注册：查重 → 哈希密码 → 入库 → 创建链上钱包"""
+    """
+    注册：查重 → 哈希密码 → 入库 → 尝试创建链上钱包
+    WeBASE 不可用时，wallet_address 为 null，前端可后续刷新分配
+    """
     if db.query(User).filter(User.account == payload.account).first():
         raise HTTPException(status_code=400, detail="账号已存在")
 
+    wallet_address = None
     sign_user_id = f"clarity_{payload.account}_{uuid.uuid4().hex[:8]}"
-    wallet = create_wallet(sign_user_id)
-    if not wallet:
-        raise HTTPException(status_code=500, detail="链上钱包创建失败，请稍后重试")
+
+    if _is_chain_available():
+        try:
+            # 先检查是否已有同名钱包可复用（理论上不应该有，但防御性编程）
+            exists_info = check_wallet_exists(sign_user_id)
+            if exists_info.get("address"):
+                wallet_address = exists_info["address"]
+            else:
+                wallet = create_wallet(sign_user_id)
+                if wallet and wallet.get("address"):
+                    wallet_address = wallet["address"]
+        except Exception:
+            pass  # 创建失败，wallet_address 保持 None
 
     user = User(
         account=payload.account,
         password_hash=hash_password(payload.password),
         display_name=payload.display_name,
         role=payload.role.value,
-        wallet_address=wallet["address"],
+        wallet_address=wallet_address,
         reputation_score=70,
     )
     db.add(user)

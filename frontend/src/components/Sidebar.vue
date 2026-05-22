@@ -1,6 +1,7 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useToastStore } from '@/stores/toast'
+import { assignWallet } from '@/api/auth'
 
 const props = defineProps({
   user: { type: Object, default: null },
@@ -8,7 +9,7 @@ const props = defineProps({
   role: { type: String, default: 'MANUFACTURER' }
 })
 
-const emit = defineEmits(['switch-section', 'recharge'])
+const emit = defineEmits(['switch-section', 'recharge', 'wallet-assigned'])
 const toast = useToastStore()
 
 const isSupplier = computed(() => props.role === 'SUPPLIER')
@@ -31,6 +32,17 @@ const balance = computed(() => {
 
 const lockedBalance = computed(() => props.user?.locked_balance || 0)
 
+const hasWallet = computed(() => !!props.user?.wallet_address)
+const walletDisplay = computed(() => {
+  if (hasWallet.value) {
+    const addr = props.user.wallet_address
+    return addr.slice(0, 6) + '...' + addr.slice(-4)
+  }
+  return '未分配'
+})
+
+const assigning = ref(false)
+
 function copyUid() {
   if (!props.user?.wallet_address) return
   navigator.clipboard.writeText(props.user.wallet_address).then(() => {
@@ -38,6 +50,23 @@ function copyUid() {
   }).catch(() => {
     toast.error('复制失败')
   })
+}
+
+async function handleAssignWallet() {
+  if (assigning.value) return
+  assigning.value = true
+  try {
+    const res = await assignWallet()
+    toast.success('链上钱包分配成功！')
+    emit('wallet-assigned', res)
+  } catch (e) {
+    console.error('分配钱包失败', e)
+    const detail = e.response?.data?.detail
+    const msg = typeof detail === 'string' ? detail : JSON.stringify(detail)
+    toast.error('分配失败: ' + (msg || e.message))
+  } finally {
+    assigning.value = false
+  }
 }
 
 const menuItems = computed(() => {
@@ -77,11 +106,15 @@ const menuItems = computed(() => {
       <div class="w-full text-base font-bold text-slate-800 leading-tight text-center">
         {{ user?.display_name || user?.username || (isSupplier ? '供应商' : isAuditor.value ? '审计节点' : '制造商') }}
       </div>
-      <div class="w-full text-[10px] text-slate-400 mt-1 mb-5 text-center flex items-center justify-center gap-1">
-        <span>链上地址: {{ user?.wallet_address ? user.wallet_address.slice(0, 6) + '...' + user.wallet_address.slice(-4) : '0x3F8A...9A2C' }}</span>
-        <div class="relative group">
+      <div class="w-full text-[10px] mt-1 mb-5 text-center flex items-center justify-center gap-1">
+        <span
+          :class="hasWallet ? 'text-slate-400' : 'text-rose-500 font-bold'"
+        >
+          链上地址: {{ walletDisplay }}
+        </span>
+        <!-- 已分配：复制按钮 -->
+        <div v-if="hasWallet" class="relative group">
           <button
-            v-if="user?.wallet_address"
             @click="copyUid"
             class="text-slate-400 hover:text-slate-600 transition-colors p-0.5"
           >
@@ -93,6 +126,21 @@ const menuItems = computed(() => {
             复制钱包地址
           </div>
         </div>
+        <!-- 未分配：刷新按钮 -->
+        <button
+          v-else
+          @click="handleAssignWallet"
+          :disabled="assigning"
+          class="text-rose-500 hover:text-rose-700 transition-colors p-0.5 disabled:opacity-50"
+          title="分配链上钱包"
+        >
+          <svg v-if="!assigning" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <svg v-else class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
       </div>
 
       <!-- 审计节点：节点网络权限卡片 -->

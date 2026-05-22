@@ -32,6 +32,11 @@ export const useAuthStore = defineStore('auth', () => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${t}`
   }
 
+  function updateUser(u) {
+    user.value = u
+    localStorage.setItem('clarity_user', JSON.stringify(u))
+  }
+
   function logout() {
     token.value = ''
     user.value = null
@@ -47,5 +52,5 @@ export const useAuthStore = defineStore('auth', () => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
   }
 
-  return { token, user, adminToken, isLoggedIn, userRole, isAdmin, setAuth, setToken, logout }
+  return { token, user, adminToken, isLoggedIn, userRole, isAdmin, setAuth, setToken, updateUser, logout }
 })

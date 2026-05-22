@@ -525,6 +525,17 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
 
+def _is_chain_available() -> bool:
+    """检查 WeBASE-Front 是否可连接"""
+    try:
+        import requests
+        from chain import WEBASE_FRONT_URL
+        resp = requests.get(f"{WEBASE_FRONT_URL}/WeBASE-Front/1/web3/clientVersion", timeout=3)
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
 def ensure_builtin_admin():
     from passlib.context import CryptContext
     pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -533,26 +544,37 @@ def ensure_builtin_admin():
     try:
         admin = db.query(User).filter(User.account == "admin").first()
         if not admin:
-            # 尝试创建链上钱包
+            # 首次创建：尝试创建链上钱包
             wallet_address = None
-            try:
-                from chain import create_wallet
-                sign_user_id = "clarity_admin_admin"
-                wallet = create_wallet(sign_user_id)
-                if wallet and wallet.get("address"):
-                    wallet_address = wallet["address"]
-                    print(f"[INIT] Admin 链上钱包已创建: {wallet_address}, signUserId={sign_user_id}")
-                else:
-                    print("[INIT] 警告: 链上钱包创建失败，将使用占位地址")
-            except Exception as e:
-                print(f"[INIT] 警告: 链上钱包创建异常: {e}")
+            sign_user_id = "clarity_admin_admin"
+            chain_available = _is_chain_available()
+
+            if chain_available:
+                try:
+                    from chain import create_wallet, check_wallet_exists
+                    exists_info = check_wallet_exists(sign_user_id)
+                    if exists_info.get("address"):
+                        wallet_address = exists_info["address"]
+                        print(f"[INIT] 复用已有 Admin 链上钱包: {wallet_address}, signUserId={sign_user_id}")
+                    else:
+                        wallet = create_wallet(sign_user_id)
+                        if wallet and wallet.get("address"):
+                            wallet_address = wallet["address"]
+                            print(f"[INIT] Admin 链上钱包已创建: {wallet_address}, signUserId={sign_user_id}")
+                        else:
+                            print("[INIT] 警告: 链上钱包创建失败，将使用占位地址")
+                except Exception as e:
+                    print(f"[INIT] 警告: 链上钱包创建异常: {e}")
+            else:
+                print("[INIT] WeBASE-Front 未连接，跳过链上钱包创建，Admin 将使用占位地址")
+                print("[INIT] 提示: 如需链上功能，请启动 WeBASE-Front 后重启服务")
 
             admin = User(
                 account="admin",
                 password_hash=pwd.hash("clarity123"),
                 display_name="系统管理员",
                 role="ADMIN",
-                wallet_address=wallet_address or "0x0000000000000000000000000000000000000000",
+                wallet_address=wallet_address,  # None 表示未创建，不是占位地址
                 is_builtin=True
             )
             db.add(admin)
@@ -560,20 +582,34 @@ def ensure_builtin_admin():
             print("[INIT] 内置 ADMIN 账号已创建: admin / clarity123")
         else:
             print("[INIT] 内置 ADMIN 账号已存在")
-            # 检查是否需要补创建链上钱包
-            if not admin.wallet_address or admin.wallet_address == "0x0000000000000000000000000000000000000000":
+            # 仅当数据库中确实没有有效地址时，才尝试补创建/复用
+            if not admin.wallet_address:
+                sign_user_id = f"clarity_admin_{admin.account}"
+                chain_available = _is_chain_available()
+
+                if not chain_available:
+                    print("[INIT] Admin 链上钱包未创建，但 WeBASE-Front 未连接，跳过")
+                    return
+
                 try:
-                    from chain import create_wallet
-                    sign_user_id = f"clarity_admin_{admin.account}"
-                    wallet = create_wallet(sign_user_id)
-                    if wallet and wallet.get("address"):
-                        admin.wallet_address = wallet["address"]
+                    from chain import create_wallet, check_wallet_exists
+                    exists_info = check_wallet_exists(sign_user_id)
+                    if exists_info.get("address"):
+                        admin.wallet_address = exists_info["address"]
                         db.commit()
-                        print(f"[INIT] 已为 Admin 补创建链上钱包: {wallet['address']}")
+                        print(f"[INIT] 复用已有 Admin 链上钱包: {exists_info['address']}")
                     else:
-                        print("[INIT] 警告: 补创建链上钱包失败")
+                        wallet = create_wallet(sign_user_id)
+                        if wallet and wallet.get("address"):
+                            admin.wallet_address = wallet["address"]
+                            db.commit()
+                            print(f"[INIT] 已为 Admin 补创建链上钱包: {wallet['address']}")
+                        else:
+                            print("[INIT] 警告: 补创建链上钱包失败")
                 except Exception as e:
                     print(f"[INIT] 警告: 补创建链上钱包异常: {e}")
+            else:
+                print(f"[INIT] Admin 钱包地址已存在: {admin.wallet_address[:10]}...，跳过")
     except Exception as e:
         print(f"[INIT] 创建 ADMIN 账号失败: {e}")
     finally:
