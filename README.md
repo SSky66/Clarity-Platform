@@ -6,7 +6,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Vue 3](https://img.shields.io/badge/Vue-3-green.svg)](https://vuejs.org/)
 
-## 简介
+## 项目简介
 
 Clarity 面向制造企业，解决工业视觉模型交付中的核心信任问题：**制造商的数据不能出域，供应商的模型需要被验证**。
 
@@ -73,7 +73,7 @@ cp .env.example .env
 python audit_worker.py
 ```
 
-## 技术栈
+## 技术选型
 
 | 层级 | 技术 |
 |------|------|
