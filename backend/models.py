@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import (
     create_engine, ForeignKey, String, Integer, Float, Boolean,
     DateTime, Text, JSON, Numeric, Index,
@@ -8,12 +9,23 @@ from datetime import datetime
 from typing import Optional, List
 from enum import Enum as PyEnum
 
-# 数据库配置
-SQLALCHEMY_DATABASE_URL = "sqlite:///./clarity_dev.db"
+# 数据库配置：优先读取环境变量，本地默认 SQLite，生产环境配 MySQL
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///./clarity_dev.db"
+)
+
+engine_args = {}
+if SQLALCHEMY_DATABASE_URL.startswith("mysql"):
+    engine_args = {
+        "pool_pre_ping": True,
+        "pool_recycle": 3600,
+    }
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {}
+    connect_args={"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {},
+    **engine_args
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
