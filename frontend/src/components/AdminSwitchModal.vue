@@ -1,9 +1,11 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 import { listUsers, sudo, getMe } from '@/api/auth'
 
+const router = useRouter()
 const toast = useToastStore()
 const authStore = useAuthStore()
 const emit = defineEmits(['close'])
@@ -65,15 +67,9 @@ async function handleSwitch(user) {
     authStore.setAuth(res.access_token, res.user)
     toast.success(`已切换至 ${roleLabel[user.role] || user.role}: ${user.display_name}`)
     
-    // 刷新页面，让系统重新加载
-    const role = user.role.toLowerCase()
-    if (role === 'manufacturer') {
-      window.location.href = '/manufacturer'
-    } else if (role === 'supplier') {
-      window.location.href = '/supplier'
-    } else if (role === 'auditor') {
-      window.location.href = '/auditor'
-    }
+    // 使用 Vue Router 跳转，避免整页刷新
+    await nextTick()
+    await router.push('/' + user.role.toLowerCase())
   } catch (e) {
     console.error('切换失败', e)
     toast.error('切换失败: ' + (e.response?.data?.detail || e.message))
@@ -88,7 +84,7 @@ async function handleRestoreAdmin() {
     const me = await getMe()
     authStore.updateUser(me)
     toast.success('已恢复ADMIN身份')
-    window.location.href = '/admin'
+    await router.push('/admin')
   } catch (e) {
     console.error('恢复ADMIN失败', e)
     toast.error('恢复ADMIN失败，请重新登录')

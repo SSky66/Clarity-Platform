@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
@@ -24,6 +24,9 @@ const registerForm = ref({
   password: ''
 })
 
+const showLoginPassword = ref(false)
+const showRegisterPassword = ref(false)
+
 const canvasContainer = ref(null)
 let renderer = null
 let animationId = null
@@ -31,6 +34,30 @@ let animationId = null
 function switchTab(tab) {
   activeTab.value = tab
 }
+
+function sanitize(str) {
+  return str.replace(/[^a-zA-Z0-9_\-@.]/g, '')
+}
+
+watch(() => loginForm.value.account, (val) => {
+  const filtered = sanitize(val)
+  if (val !== filtered) loginForm.value.account = filtered
+})
+
+watch(() => loginForm.value.password, (val) => {
+  const filtered = sanitize(val)
+  if (val !== filtered) loginForm.value.password = filtered
+})
+
+watch(() => registerForm.value.account, (val) => {
+  const filtered = sanitize(val)
+  if (val !== filtered) registerForm.value.account = filtered
+})
+
+watch(() => registerForm.value.password, (val) => {
+  const filtered = sanitize(val)
+  if (val !== filtered) registerForm.value.password = filtered
+})
 
 async function handleLogin() {
   const { account, password, role } = loginForm.value
@@ -353,18 +380,22 @@ function initThree() {
               <div class="bg-slate-50 w-20 flex items-center justify-center border-r border-slate-300 shrink-0">
                 <span class="text-slate-600 font-bold text-xs tracking-widest">账号</span>
               </div>
-              <input v-model="loginForm.account" type="text" placeholder="输入企业登录账号或UID" class="flex-1 bg-transparent px-4 text-xs text-slate-800 focus:outline-none placeholder-slate-400 font-bold">
+              <input v-model="loginForm.account" type="text" placeholder="输入企业登录账号" class="flex-1 bg-transparent px-4 text-xs text-slate-800 focus:outline-none placeholder-slate-400 font-bold">
             </div>
 
             <div class="input-wrapper border border-slate-300 rounded-sm bg-white flex items-stretch overflow-hidden h-11">
               <div class="bg-slate-50 w-20 flex items-center justify-center border-r border-slate-300 shrink-0">
                 <span class="text-slate-600 font-bold text-xs tracking-widest">密码</span>
               </div>
-              <input v-model="loginForm.password" type="password" placeholder="••••••••" autocomplete="new-password" class="flex-1 bg-transparent px-4 text-sm text-slate-800 focus:outline-none tracking-widest placeholder-slate-400 font-bold">
+              <input v-model="loginForm.password" :type="showLoginPassword ? 'text' : 'password'" placeholder="••••••••" autocomplete="new-password" class="flex-1 bg-transparent px-4 text-xs text-slate-800 focus:outline-none tracking-widest placeholder-slate-400 font-bold">
+              <button type="button" @click="showLoginPassword = !showLoginPassword" class="px-3 text-slate-400 hover:text-slate-600 focus:outline-none">
+                <svg v-if="!showLoginPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+              </button>
             </div>
 
             <div class="flex justify-end pt-1">
-              <a href="#" class="text-[11px] font-bold text-slate-400 hover:text-slate-800 transition-colors uppercase tracking-widest">忘记密码?</a>
+              <button type="button" @click="toast.success('请联系系统管理员重置密码')" class="text-[11px] font-bold text-slate-400 hover:text-slate-800 transition-colors uppercase tracking-widest bg-transparent border-none cursor-pointer">忘记密码?</button>
             </div>
 
             <div class="pt-3">
@@ -406,14 +437,18 @@ function initThree() {
               <div class="bg-slate-50 w-20 flex items-center justify-center border-r border-slate-300 shrink-0">
                 <span class="text-slate-600 font-bold text-xs tracking-widest">账号</span>
               </div>
-              <input v-model="registerForm.account" type="text" placeholder="设置登录账号" class="flex-1 bg-transparent px-4 text-xs text-slate-800 focus:outline-none placeholder-slate-400 font-bold">
+              <input v-model="registerForm.account" type="text" placeholder="设置账号（至少5位）" class="flex-1 bg-transparent px-4 text-xs text-slate-800 focus:outline-none placeholder-slate-400 font-bold">
             </div>
 
             <div class="input-wrapper border border-slate-300 rounded-sm bg-white flex items-stretch overflow-hidden h-11">
               <div class="bg-slate-50 w-20 flex items-center justify-center border-r border-slate-300 shrink-0">
                 <span class="text-slate-600 font-bold text-xs tracking-widest">密码</span>
               </div>
-              <input v-model="registerForm.password" type="password" placeholder="设置密码（至少8位）" autocomplete="new-password" class="flex-1 bg-transparent px-4 text-xs text-slate-800 focus:outline-none tracking-widest placeholder-slate-400 font-bold">
+              <input v-model="registerForm.password" :type="showRegisterPassword ? 'text' : 'password'" placeholder="设置密码（至少8位）" autocomplete="new-password" class="flex-1 bg-transparent px-4 text-xs text-slate-800 focus:outline-none placeholder-slate-400 font-bold">
+              <button type="button" @click="showRegisterPassword = !showRegisterPassword" class="px-3 text-slate-400 hover:text-slate-600 focus:outline-none">
+                <svg v-if="!showRegisterPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+              </button>
             </div>
 
             <div class="pt-1">
@@ -456,6 +491,21 @@ select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+}
+
+/* 隐藏浏览器自带的密码显示按钮 */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
 }
 
 @keyframes fadeIn {

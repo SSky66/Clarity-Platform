@@ -19,8 +19,8 @@ def _is_chain_available() -> bool:
     """检查 WeBASE-Front 是否可连接"""
     try:
         import requests
-        from chain import WEBASE_FRONT_URL
-        resp = requests.get(f"{WEBASE_FRONT_URL}/WeBASE-Front/1/web3/clientVersion", timeout=3)
+        from chain import WEBASE_FRONT_URL, GROUP_ID
+        resp = requests.get(f"{WEBASE_FRONT_URL}/WeBASE-Front/{GROUP_ID}/web3/clientVersion", timeout=3)
         return resp.status_code == 200
     except Exception:
         return False
