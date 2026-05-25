@@ -5,6 +5,7 @@ import uuid
 from models import User, UserRole, BASE_REPUTATION, get_db
 from schemas import UserResponse
 from core.deps import get_current_user
+from core.security import verify_password, hash_password
 from chain import create_wallet, check_wallet_exists
 
 router = APIRouter(prefix="/api/users", tags=["用户"])
@@ -124,3 +125,40 @@ def assign_wallet(
         raise
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"链上服务异常: {str(e)}")
+
+
+@router.post("/me/change-password")
+def change_password(
+    old_password: str,
+    new_password: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """修改密码：验证旧密码，更新为新密码"""
+    if not verify_password(old_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="旧密码错误")
+    if len(new_password) < 8:
+        raise HTTPException(status_code=400, detail="新密码至少8位")
+    current_user.password_hash = hash_password(new_password)
+    db.commit()
+    return {"message": "密码修改成功"}
+
+
+@router.put("/me/change-account")
+def change_account(
+    new_account: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """修改登录账号：查重后更新"""
+    if not new_account or len(new_account) < 5:
+        raise HTTPException(status_code=400, detail="账号最少5位")
+    if new_account == current_user.account:
+        raise HTTPException(status_code=400, detail="新账号不能与旧账号相同")
+    existing = db.query(User).filter(User.account == new_account).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="该账号已被使用")
+    current_user.account = new_account
+    db.commit()
+    db.refresh(current_user)
+    return {"message": "账号修改成功", "user": UserResponse.model_validate(current_user)}

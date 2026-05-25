@@ -63,21 +63,30 @@ const fieldDisputeTasks = computed(() => tasks.value.filter(t => t.status === 'D
 async function fetchData() {
   loading.value = true
   try {
-    const [usersRes, tasksRes, eventsRes, statsRes] = await Promise.all([
+    // 核心数据优先加载，不等待链上状态
+    const [usersRes, tasksRes, eventsRes] = await Promise.all([
       listUsers(),
       listTasks({}),
-      listChainEventsV2({ limit: 10 }),
-      getChainStats()
+      listChainEventsV2({ limit: 10 })
     ])
     users.value = usersRes || []
     tasks.value = tasksRes || []
     chainEvents.value = eventsRes || []
-    chainStats.value = statsRes || chainStats.value
   } catch (e) {
     console.error('获取数据失败', e)
     toast.error('获取数据失败: ' + (e.response?.data?.detail || e.message))
   } finally {
     loading.value = false
+  }
+}
+
+// 链上状态单独加载，不阻塞核心数据
+async function fetchChainStats() {
+  try {
+    const statsRes = await getChainStats()
+    chainStats.value = statsRes || chainStats.value
+  } catch (e) {
+    console.error('获取链上状态失败', e)
   }
 }
 
@@ -217,13 +226,40 @@ async function handleAssignWallet() {
   }
 }
 
-function copyWalletAddress() {
+async function copyWalletAddress() {
   if (!user.value?.wallet_address) return
-  navigator.clipboard.writeText(user.value.wallet_address).then(() => {
-    toast.success('钱包地址已复制到剪贴板')
-  }).catch(() => {
-    toast.error('复制失败')
-  })
+  
+  const text = user.value.wallet_address
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('钱包地址已复制到剪贴板')
+      return
+    } catch (e) {
+      console.log('clipboard API failed, fallback')
+    }
+  }
+  
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  
+  try {
+    const success = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    if (success) {
+      toast.success('钱包地址已复制到剪贴板')
+    } else {
+      toast.error('复制失败，请手动复制')
+    }
+  } catch (e) {
+    document.body.removeChild(textarea)
+    toast.error('复制失败，请手动复制')
+  }
 }
 
 function formatHash(hash) {
@@ -240,7 +276,10 @@ function formatDate(dt) {
   return d.toLocaleString('zh-CN')
 }
 
-onMounted(fetchData)
+onMounted(() => {
+  fetchData()
+  fetchChainStats()
+})
 </script>
 
 <template>

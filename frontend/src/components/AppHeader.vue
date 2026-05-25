@@ -6,7 +6,7 @@ const props = defineProps({
   currentSection: { type: String, default: 'project' }
 })
 
-const emit = defineEmits(['switch-section', 'logout', 'show-help', 'show-admin-switch'])
+const emit = defineEmits(['switch-section', 'logout', 'show-help', 'show-admin-switch', 'show-profile'])
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.isAdmin)
 const hasAdminToken = computed(() => !!authStore.adminToken)
@@ -70,7 +70,7 @@ const hasAdminToken = computed(() => !!authStore.adminToken)
 
       <div
         class="text-sm font-medium hover:text-slate-300 cursor-pointer transition-colors flex items-center gap-2"
-        @click="isAdmin || hasAdminToken ? emit('show-admin-switch') : null"
+        @click="isAdmin || hasAdminToken ? emit('show-admin-switch') : emit('show-profile')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>

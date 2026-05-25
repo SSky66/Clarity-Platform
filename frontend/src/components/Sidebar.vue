@@ -43,13 +43,42 @@ const walletDisplay = computed(() => {
 
 const assigning = ref(false)
 
-function copyUid() {
+async function copyUid() {
   if (!props.user?.wallet_address) return
-  navigator.clipboard.writeText(props.user.wallet_address).then(() => {
-    toast.success('钱包地址已复制到剪贴板')
-  }).catch(() => {
-    toast.error('复制失败')
-  })
+  
+  const text = props.user.wallet_address
+  
+  // 优先使用现代 API
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('钱包地址已复制到剪贴板')
+      return
+    } catch (e) {
+      console.log('clipboard API failed, fallback')
+    }
+  }
+  
+  // 降级方案：用 textarea + execCommand
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  
+  try {
+    const success = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    if (success) {
+      toast.success('钱包地址已复制到剪贴板')
+    } else {
+      toast.error('复制失败，请手动复制')
+    }
+  } catch (e) {
+    document.body.removeChild(textarea)
+    toast.error('复制失败，请手动复制')
+  }
 }
 
 async function handleAssignWallet() {

@@ -14,6 +14,7 @@ import FieldSignModal from '@/components/FieldSignModal.vue'
 import RechargeModal from '@/components/RechargeModal.vue'
 import HelpGuideModal from '@/components/HelpGuideModal.vue'
 import AdminSwitchModal from '@/components/AdminSwitchModal.vue'
+import ProfileModal from '@/components/ProfileModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -33,6 +34,7 @@ const showFieldSignModal = ref(false)
 const showRechargeModal = ref(false)
 const showHelpModal = ref(false)
 const showAdminSwitchModal = ref(false)
+const showProfileModal = ref(false)
 
 const uploadTarget = ref({ id: '', name: '' })
 const fieldSignTarget = ref({ id: '', name: '' })
@@ -155,13 +157,38 @@ function handleRecharged() {
   fetchUser()
 }
 
-function copyProjectId(task) {
+async function copyProjectId(task) {
   const hash = task.task_hash || task.id
-  navigator.clipboard.writeText(hash).then(() => {
-    toast.success('项目哈希已复制到剪贴板！请通过线下安全渠道发送给您的专属算法供应商。')
-  }).catch(() => {
-    toast.error('复制失败')
-  })
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(hash)
+      toast.success('项目哈希已复制到剪贴板！请通过线下安全渠道发送给您的专属算法供应商。')
+      return
+    } catch (e) {
+      console.log('clipboard API failed, fallback')
+    }
+  }
+  
+  const textarea = document.createElement('textarea')
+  textarea.value = hash
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  
+  try {
+    const success = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    if (success) {
+      toast.success('项目哈希已复制到剪贴板！请通过线下安全渠道发送给您的专属算法供应商。')
+    } else {
+      toast.error('复制失败，请手动复制')
+    }
+  } catch (e) {
+    document.body.removeChild(textarea)
+    toast.error('复制失败，请手动复制')
+  }
 }
 
 function logout() {
@@ -180,6 +207,7 @@ onMounted(loadAll)
       @logout="logout"
       @show-help="showHelpModal = true"
       @show-admin-switch="showAdminSwitchModal = true"
+      @show-profile="showProfileModal = true"
     />
 
     <div class="flex-1 flex overflow-hidden">
@@ -555,6 +583,7 @@ onMounted(loadAll)
     <RechargeModal v-if="showRechargeModal" :current-balance="user?.balance || 0" @close="showRechargeModal = false" @recharged="handleRecharged" />
     <HelpGuideModal v-if="showHelpModal" @close="showHelpModal = false" />
     <AdminSwitchModal v-if="showAdminSwitchModal" @close="showAdminSwitchModal = false" />
+    <ProfileModal v-if="showProfileModal" @close="showProfileModal = false" />
   </div>
 </template>
 

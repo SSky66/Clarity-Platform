@@ -12,6 +12,7 @@ import RechargeModal from '@/components/RechargeModal.vue'
 import DispatchModal from '@/components/DispatchModal.vue'
 import HelpGuideModal from '@/components/HelpGuideModal.vue'
 import AdminSwitchModal from '@/components/AdminSwitchModal.vue'
+import ProfileModal from '@/components/ProfileModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -30,6 +31,7 @@ const showDispatchModal = ref(false)
 const dispatchTarget = ref(null)
 const showHelpModal = ref(false)
 const showAdminSwitchModal = ref(false)
+const showProfileModal = ref(false)
 const showReportModal = ref(false)
 const reportTarget = ref(null)
 const reportForm = reactive({
@@ -204,13 +206,40 @@ function handleRecharged() {
   fetchUser()
 }
 
-function copyUid() {
+async function copyUid() {
   if (!user.value?.wallet_address) return
-  navigator.clipboard.writeText(user.value.wallet_address).then(() => {
-    toast.success('钱包地址已复制到剪贴板')
-  }).catch(() => {
-    toast.error('复制失败')
-  })
+  
+  const text = user.value.wallet_address
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('钱包地址已复制到剪贴板')
+      return
+    } catch (e) {
+      console.log('clipboard API failed, fallback')
+    }
+  }
+  
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  
+  try {
+    const success = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    if (success) {
+      toast.success('钱包地址已复制到剪贴板')
+    } else {
+      toast.error('复制失败，请手动复制')
+    }
+  } catch (e) {
+    document.body.removeChild(textarea)
+    toast.error('复制失败，请手动复制')
+  }
 }
 
 function logout() {
@@ -229,6 +258,7 @@ onMounted(loadAll)
       @logout="logout"
       @show-help="showHelpModal = true"
       @show-admin-switch="showAdminSwitchModal = true"
+      @show-profile="showProfileModal = true"
     />
 
     <div class="flex-1 flex overflow-hidden">
@@ -674,6 +704,7 @@ onMounted(loadAll)
     />
     <HelpGuideModal v-if="showHelpModal" @close="showHelpModal = false" />
     <AdminSwitchModal v-if="showAdminSwitchModal" @close="showAdminSwitchModal = false" />
+    <ProfileModal v-if="showProfileModal" @close="showProfileModal = false" />
 
     <!-- 提交审计报告弹窗 -->
     <div

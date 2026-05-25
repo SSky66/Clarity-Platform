@@ -14,6 +14,7 @@ import FieldSignModal from '@/components/FieldSignModal.vue'
 import RechargeModal from '@/components/RechargeModal.vue'
 import HelpGuideModal from '@/components/HelpGuideModal.vue'
 import AdminSwitchModal from '@/components/AdminSwitchModal.vue'
+import ProfileModal from '@/components/ProfileModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -32,6 +33,7 @@ const showFieldSignModal = ref(false)
 const showRechargeModal = ref(false)
 const showHelpModal = ref(false)
 const showAdminSwitchModal = ref(false)
+const showProfileModal = ref(false)
 
 const uploadTarget = ref({ id: '', name: '' })
 const fieldSignTarget = ref({ id: '', name: '' })
@@ -214,6 +216,7 @@ onMounted(loadAll)
       @logout="logout"
       @show-help="showHelpModal = true"
       @show-admin-switch="showAdminSwitchModal = true"
+      @show-profile="showProfileModal = true"
     />
 
     <div class="flex-1 flex overflow-hidden">
@@ -652,6 +655,7 @@ onMounted(loadAll)
     </div>
     <HelpGuideModal v-if="showHelpModal" @close="showHelpModal = false" />
     <AdminSwitchModal v-if="showAdminSwitchModal" @close="showAdminSwitchModal = false" />
+    <ProfileModal v-if="showProfileModal" @close="showProfileModal = false" />
   </div>
 </template>
 
