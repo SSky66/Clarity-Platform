@@ -104,7 +104,7 @@ def create_appeal(
     if current_user.id not in [task.manufacturer_id, task.supplier_id]:
         raise HTTPException(403, "仅项目相关方可申诉")
 
-    if payload.appeal_type in [AppealType.AUDIT_REJECT, AppealType.AUDIT_SLASH]:
+    if payload.appeal_type.value in [AppealType.AUDIT_REJECT.value, AppealType.AUDIT_SLASH.value]:
         if task.status != TaskStatus.DISPUTED_AUDIT.value:
             raise HTTPException(400, "当前状态不允许线上申诉，请先调用 /start-appeal")
         if current_user.id != task.supplier_id:

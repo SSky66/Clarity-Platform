@@ -99,10 +99,10 @@ def confirm_onsite(
         task.field_actual_fpr = payload.field_actual_fpr
     if payload.field_actual_latency is not None:
         task.field_actual_latency = payload.field_actual_latency
-    if payload.field_actual_map is not None:
-        task.field_actual_map = payload.field_actual_map
-    if payload.field_actual_f1 is not None:
-        task.field_actual_f1 = payload.field_actual_f1
+    # field_actual_map 和 field_actual_f1 不在 FieldSignPayload 中
+    # 但可能在 task 模型中有这些字段，通过 measured_map 回填
+    if payload.measured_map is not None:
+        task.field_actual_map = payload.measured_map
     if payload.field_environment_notes:
         task.field_environment_notes = payload.field_environment_notes
     if payload.evidence_hash:

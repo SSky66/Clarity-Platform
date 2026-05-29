@@ -190,7 +190,8 @@ def advance_to_acceptance(
     manufacturer = db.query(User).filter(User.id == task.manufacturer_id).first()
     supplier = db.query(User).filter(User.id == task.supplier_id).first()
 
-    release = BASE_DEPOSIT * PASS_RELEASE_RATIO
+    from decimal import Decimal
+    release = Decimal(str(BASE_DEPOSIT)) * Decimal(str(PASS_RELEASE_RATIO))
     if manufacturer:
         manufacturer.balance += release
         manufacturer.locked_balance -= release
