@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useToastStore } from '@/stores/toast'
+import { useMobileStore } from '@/stores/mobile'
 import { assignWallet } from '@/api/auth'
 
 const props = defineProps({
@@ -11,6 +12,7 @@ const props = defineProps({
 
 const emit = defineEmits(['switch-section', 'recharge', 'wallet-assigned'])
 const toast = useToastStore()
+const mobileStore = useMobileStore()
 
 const isSupplier = computed(() => props.role === 'SUPPLIER')
 const isAuditor = computed(() => props.role === 'AUDITOR')
@@ -42,6 +44,14 @@ const walletDisplay = computed(() => {
 })
 
 const assigning = ref(false)
+
+function handleMenuClick(key) {
+  emit('switch-section', key)
+  // 移动端点击菜单后自动关闭侧边栏
+  if (mobileStore.isMobile || mobileStore.isTablet) {
+    mobileStore.closeSidebar()
+  }
+}
 
 async function copyUid() {
   if (!props.user?.wallet_address) return
@@ -115,7 +125,21 @@ const menuItems = computed(() => {
 </script>
 
 <template>
-  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+  <!-- 移动端遮罩层 -->
+  <div
+    v-if="mobileStore.sidebarOpen && (mobileStore.isMobile || mobileStore.isTablet)"
+    class="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
+    @click="mobileStore.closeSidebar"
+  ></div>
+  <aside
+    class="bg-white border-r border-slate-200 flex flex-col shrink-0 transition-transform duration-300 ease-in-out z-50"
+    :class="{
+      'fixed inset-y-0 left-0 w-64 transform': mobileStore.isMobile || mobileStore.isTablet,
+      '-translate-x-full': (mobileStore.isMobile || mobileStore.isTablet) && !mobileStore.sidebarOpen,
+      'translate-x-0': (mobileStore.isMobile || mobileStore.isTablet) && mobileStore.sidebarOpen,
+      'w-64 relative': !mobileStore.isMobile && !mobileStore.isTablet
+    }"
+  >
     <!-- 个人信息区 -->
     <div class="p-6 flex flex-col items-center border-b border-slate-100">
       <div class="w-16 h-16 rounded bg-[#0f172a] flex items-center justify-center text-white mb-4 shadow-sm">
@@ -207,7 +231,7 @@ const menuItems = computed(() => {
         :class="currentSection === item.key
           ? 'font-bold text-slate-800 bg-slate-100'
           : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'"
-        @click.prevent="emit('switch-section', item.key)"
+        @click.prevent="handleMenuClick(item.key)"
       >
         {{ item.label }}
       </a>

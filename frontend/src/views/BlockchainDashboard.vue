@@ -198,7 +198,7 @@ onMounted(() => {
         @wallet-assigned="fetchUser"
       />
 
-      <main class="flex-1 overflow-y-auto bg-slate-100 p-8">
+      <main class="flex-1 overflow-y-auto bg-slate-100 p-4 md:p-8">
         <!-- 页面标题 -->
         <div class="mb-6">
           <h2 class="text-lg font-bold text-slate-800">区块链浏览器</h2>
@@ -208,7 +208,7 @@ onMounted(() => {
         </div>
 
         <!-- 链上概览卡片 -->
-        <div class="grid grid-cols-4 gap-6 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
           <div class="bg-white border border-slate-200 rounded-sm shadow-sm p-6">
             <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">当前区块高度</div>
             <div class="text-xl font-bold text-slate-800 font-mono">

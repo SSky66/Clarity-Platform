@@ -209,7 +209,7 @@ onMounted(loadAll)
 </script>
 
 <template>
-  <div class="h-screen flex flex-col overflow-hidden selection:bg-slate-200 selection:text-slate-900" style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f1f5f9; color: #0f172a;">
+  <div class="h-[100dvh] flex flex-col overflow-hidden selection:bg-slate-200 selection:text-slate-900" style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f1f5f9; color: #0f172a;">
     <AppHeader
       :current-section="currentSection"
       @switch-section="switchSection"
@@ -229,15 +229,15 @@ onMounted(loadAll)
         @wallet-assigned="fetchUser"
       />
 
-      <main class="flex-1 overflow-y-auto bg-slate-100 p-8">
+      <main class="flex-1 overflow-y-auto bg-slate-100 p-4 md:p-8">
         <!-- 项目大厅 -->
         <div v-if="currentSection === 'project'">
-          <div class="flex items-center justify-between mb-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-3">
             <div>
-              <h2 class="text-lg font-bold text-slate-800">
+              <h2 class="text-base md:text-lg font-bold text-slate-800">
                 欢迎回来，{{ user?.display_name || user?.username || '供应商' }}
               </h2>
-              <p class="text-sm text-slate-600 mt-1">
+              <p class="text-xs md:text-sm text-slate-600 mt-1">
                 当前已接入 <span class="font-bold text-blue-600">{{ totalCount }}</span> 个验收合约，
                 <span class="font-bold text-blue-600">{{ uploadingCount }}</span> 个待提交模型，
                 <span class="font-bold text-blue-600">{{ acceptanceCount }}</span> 个待现场履约
@@ -245,9 +245,10 @@ onMounted(loadAll)
             </div>
             <button
               @click="showJoinModal = true"
-              class="px-6 py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white text-sm font-bold rounded-sm shadow-sm transition-colors"
+              class="px-4 md:px-6 py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white text-xs md:text-sm font-bold rounded-sm shadow-sm transition-colors whitespace-nowrap"
             >
-              接入新的验收需求
+              <span class="md:hidden">+ 接入项目</span>
+              <span class="hidden md:inline">接入新的验收需求</span>
             </button>
           </div>
 

@@ -313,23 +313,23 @@ function initThree() {
 </script>
 
 <template>
-  <div class="h-screen w-screen flex items-center justify-center relative overflow-hidden" style="background-color: #0b1120;">
+  <div class="min-h-[100dvh] w-screen flex items-center justify-center relative overflow-hidden py-4 px-4" style="background-color: #0b1120;">
     <!-- 背景层 -->
     <div class="absolute inset-0 z-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[length:24px_24px]"></div>
     <div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/40 rounded-full blur-[140px] z-0"></div>
     <div class="absolute bottom-[-15%] right-[-5%] w-[700px] h-[700px] bg-cyan-500/30 rounded-full blur-[160px] z-0"></div>
 
     <!-- 核心面板 -->
-    <div class="w-full max-w-[880px] flex flex-col md:flex-row relative z-10 mx-4 overflow-hidden"
-      style="box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05); border-radius: 12px; height: 520px; max-height: 90vh;">
+    <div class="w-full max-w-[880px] flex flex-col md:flex-row relative z-10 overflow-hidden"
+      style="box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05); border-radius: 12px; max-height: 90vh;">
 
       <!-- 左侧：立体图案 -->
-      <div class="w-full md:w-[45%] bg-slate-50 border-r border-slate-200 p-10 flex flex-col items-center justify-center relative">
-        <div ref="canvasContainer" class="w-[280px] h-[280px] mb-2 relative flex items-center justify-center"></div>
+      <div class="w-full md:w-[45%] bg-slate-50 border-r border-slate-200 p-6 md:p-10 flex flex-col items-center justify-center relative">
+        <div ref="canvasContainer" class="w-[200px] h-[200px] md:w-[280px] md:h-[280px] mb-2 relative flex items-center justify-center"></div>
 
         <div class="text-center mt-2">
-          <h1 class="text-2xl font-bold text-slate-900 tracking-wide mb-2">Clarity 澄澈系统</h1>
-          <p class="text-xs text-slate-500 leading-relaxed font-medium">
+          <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-wide mb-2">Clarity 澄澈系统</h1>
+          <p class="text-[10px] md:text-xs text-slate-500 leading-relaxed font-medium">
             面向工业视觉 AI 模型交付环节的审计协议<br>
             <span class="text-[10px] opacity-70 mt-1 block tracking-widest uppercase font-mono">Zero-Trust Technical Notary</span>
           </p>
@@ -337,7 +337,7 @@ function initThree() {
       </div>
 
       <!-- 右侧：表单 -->
-      <div class="w-full md:w-[55%] bg-white px-12 py-10 flex flex-col justify-center">
+      <div class="w-full md:w-[55%] bg-white px-6 md:px-12 py-6 md:py-10 flex flex-col justify-center">
         <!-- Tab 切换 -->
         <div class="flex justify-center gap-12 mb-8 text-[15px] font-bold">
           <button
@@ -469,7 +469,7 @@ function initThree() {
     </div>
 
     <!-- 底部 -->
-    <div class="absolute bottom-6 text-center w-full z-0">
+    <div class="absolute bottom-2 md:bottom-6 text-center w-full z-0">
       <p class="text-[10px] text-slate-500 font-mono tracking-widest opacity-80 flex items-center justify-center gap-2">
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         POWERED BY FISCO BCOS

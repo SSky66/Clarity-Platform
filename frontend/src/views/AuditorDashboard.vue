@@ -251,7 +251,7 @@ onMounted(loadAll)
 </script>
 
 <template>
-  <div class="h-screen flex flex-col overflow-hidden selection:bg-slate-200 selection:text-slate-900" style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f1f5f9; color: #0f172a;">
+  <div class="h-[100dvh] flex flex-col overflow-hidden selection:bg-slate-200 selection:text-slate-900" style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f1f5f9; color: #0f172a;">
     <AppHeader
       :current-section="currentSection"
       @switch-section="switchSection"
@@ -371,19 +371,17 @@ onMounted(loadAll)
         </div>
       </aside>
 
-      <main class="flex-1 overflow-y-auto bg-slate-100 p-8">
+      <main class="flex-1 overflow-y-auto bg-slate-100 p-4 md:p-8">
         <!-- 任务队列 -->
         <div v-if="currentSection === 'project'">
-          <div class="flex items-center justify-between mb-6">
-            <div>
-              <h2 class="text-lg font-bold text-slate-800">
-                欢迎回来，{{ user?.display_name || user?.username || '机器视觉产业联盟' }}
-              </h2>
-              <p class="text-sm text-slate-600 mt-1">
-                当前有 <span class="font-bold text-blue-700">{{ preparedCount }}</span> 个就绪工单等待调度，
-                <span class="font-bold text-blue-600">{{ auditingCount }}</span> 个工单正在执行计算
-              </p>
-            </div>
+          <div class="mb-4 md:mb-6">
+            <h2 class="text-base md:text-lg font-bold text-slate-800">
+              欢迎回来，{{ user?.display_name || user?.username || '机器视觉产业联盟' }}
+            </h2>
+            <p class="text-xs md:text-sm text-slate-600 mt-1">
+              当前有 <span class="font-bold text-blue-700">{{ preparedCount }}</span> 个就绪工单等待调度，
+              <span class="font-bold text-blue-600">{{ auditingCount }}</span> 个工单正在执行计算
+            </p>
           </div>
 
           <!-- 就绪工单 (双边均已就位) -->
@@ -514,7 +512,7 @@ onMounted(loadAll)
               <h3 class="text-sm font-bold text-slate-800">节点服务费统计</h3>
             </div>
             <div class="p-8 bg-white">
-              <div class="grid grid-cols-3 gap-6">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 <div class="bg-slate-50 border border-slate-200 rounded-sm p-4">
                   <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">本日服务费</div>
                   <div class="text-xl font-bold text-slate-800 font-mono">

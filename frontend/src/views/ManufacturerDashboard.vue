@@ -200,7 +200,7 @@ onMounted(loadAll)
 </script>
 
 <template>
-  <div class="h-screen flex flex-col overflow-hidden selection:bg-slate-200 selection:text-slate-900" style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f1f5f9; color: #0f172a;">
+  <div class="h-[100dvh] flex flex-col overflow-hidden selection:bg-slate-200 selection:text-slate-900" style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f1f5f9; color: #0f172a;">
     <AppHeader
       :current-section="currentSection"
       @switch-section="switchSection"
@@ -220,24 +220,25 @@ onMounted(loadAll)
         @wallet-assigned="fetchUser"
       />
 
-      <main class="flex-1 overflow-y-auto bg-slate-100 p-8">
+      <main class="flex-1 overflow-y-auto bg-slate-100 p-4 md:p-8">
         <!-- 项目大厅 -->
         <div v-if="currentSection === 'project'">
-          <div class="flex items-center justify-between mb-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-3">
             <div>
-              <h2 class="text-lg font-bold text-slate-800">
+              <h2 class="text-base md:text-lg font-bold text-slate-800">
                 欢迎回来，{{ user?.display_name || user?.username || '制造商' }}
               </h2>
-              <p class="text-sm text-slate-600 mt-1">
+              <p class="text-xs md:text-sm text-slate-600 mt-1">
                 当前有 <span class="font-bold text-blue-600">{{ pendingCount }}</span> 个项目待验收，
                 <span class="font-bold text-blue-600">{{ runningCount }}</span> 个项目执行中
               </p>
             </div>
             <button
               @click="showCreateModal = true"
-              class="px-6 py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white text-sm font-bold rounded-sm shadow-sm transition-colors"
+              class="px-4 md:px-6 py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white text-xs md:text-sm font-bold rounded-sm shadow-sm transition-colors whitespace-nowrap"
             >
-              创建新的验收需求
+              <span class="md:hidden">+ 新建项目</span>
+              <span class="hidden md:inline">创建新的验收需求</span>
             </button>
           </div>
 
@@ -293,15 +294,60 @@ onMounted(loadAll)
 
           <!-- 项目大厅列表 -->
           <div class="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-              <h3 class="text-sm font-bold text-slate-800">我发布的项目</h3>
+            <div class="px-4 md:px-6 py-3 md:py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+              <h3 class="text-xs md:text-sm font-bold text-slate-800">我发布的项目</h3>
               <select class="text-xs border border-slate-300 rounded-sm px-2 py-1 text-slate-700 outline-none bg-white">
                 <option>全部状态</option>
                 <option>待处理</option>
                 <option>审计中</option>
               </select>
             </div>
-            <div class="overflow-x-auto">
+            <!-- 移动端：卡片式展示 -->
+            <div class="md:hidden divide-y divide-slate-200">
+              <div v-for="task in tasks" :key="task.id" class="p-4 bg-white">
+                <div class="flex justify-between items-start mb-2">
+                  <div>
+                    <div class="font-bold text-sm text-slate-800">{{ task.task_name || task.name }}</div>
+                    <div class="text-[10px] text-slate-500 font-mono mt-0.5">{{ formatHash(task.task_hash || task.id) }}</div>
+                  </div>
+                  <span
+                    class="text-[10px] font-bold px-1.5 py-0.5 rounded-sm border shrink-0"
+                    :class="{
+                      'text-slate-600 bg-slate-100 border-slate-200': task.status === 'PENDING' || task.status === 'UPLOADING',
+                      'text-slate-800 bg-slate-100 border-slate-300': task.status === 'ACCEPTANCE',
+                      'text-blue-700 bg-blue-50 border-blue-200': task.status === 'AUDITING'
+                    }"
+                  >
+                    {{ statusDisplay(task.status) }}
+                  </span>
+                </div>
+                <div class="text-xs text-slate-600 mb-2">
+                  漏杀&lt;{{ ((task.target_fnr || 0.005) * 100).toFixed(1) }}% | 误杀&lt;{{ ((task.target_fpr || 0.05) * 100).toFixed(1) }}%
+                </div>
+                <div class="flex gap-2">
+                  <button
+                    v-if="task.status === 'UPLOADING'"
+                    @click="openUpload(task)"
+                    class="flex-1 text-center text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 py-2 rounded-sm"
+                  >上传数据</button>
+                  <button
+                    v-else-if="task.status === 'ACCEPTANCE'"
+                    @click="openFieldSign(task)"
+                    class="flex-1 text-center text-xs font-bold text-white bg-blue-600 py-2 rounded-sm"
+                  >现场验收</button>
+                  <button
+                    v-else
+                    @click="copyProjectId(task)"
+                    class="flex-1 text-center text-xs font-bold text-slate-700 bg-slate-100 border border-slate-300 py-2 rounded-sm"
+                  >复制哈希</button>
+                </div>
+              </div>
+              <div v-if="tasks.length === 0" class="p-6 text-center text-sm text-slate-500">
+                暂无项目数据
+              </div>
+            </div>
+            <!-- 桌面端：表格 -->
+            <div class="hidden md:block overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-100 text-slate-600 text-xs border-b border-slate-200">
@@ -333,7 +379,6 @@ onMounted(loadAll)
                       </div>
                     </td>
                     <td class="px-6 py-4">
-                      <!-- UPLOADING 阶段显示对方信誉积分 -->
                       <div v-if="task.status === 'UPLOADING' && task.supplier_reputation !== undefined && task.supplier_reputation !== null">
                         <div class="flex items-center gap-1.5">
                           <span class="text-xs font-bold text-slate-800">{{ task.supplier_reputation }}</span>
@@ -440,11 +485,9 @@ onMounted(loadAll)
 
         <!-- 历史凭证 -->
         <div v-if="currentSection === 'history'">
-          <div class="flex items-center justify-between mb-6">
-            <div>
-              <h2 class="text-lg font-bold text-slate-800">历史凭证</h2>
-              <p class="text-sm text-slate-600 mt-1">查看所有具备防篡改效力的链上可解释性技术报告</p>
-            </div>
+          <div class="mb-4 md:mb-6">
+            <h2 class="text-base md:text-lg font-bold text-slate-800">历史凭证</h2>
+            <p class="text-xs md:text-sm text-slate-600 mt-1">查看所有具备防篡改效力的链上可解释性技术报告</p>
           </div>
           <div class="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
@@ -513,11 +556,9 @@ onMounted(loadAll)
 
         <!-- 申诉记录 -->
         <div v-if="currentSection === 'arbitration'">
-          <div class="flex items-center justify-between mb-6">
-            <div>
-              <h2 class="text-lg font-bold text-slate-800">申诉记录</h2>
-              <p class="text-sm text-slate-600 mt-1">查看所有争议申诉及预言机处理状态</p>
-            </div>
+          <div class="mb-4 md:mb-6">
+            <h2 class="text-base md:text-lg font-bold text-slate-800">申诉记录</h2>
+            <p class="text-xs md:text-sm text-slate-600 mt-1">查看所有争议申诉及预言机处理状态</p>
           </div>
           <div class="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">

@@ -291,7 +291,7 @@ onMounted(() => {
       @show-admin-switch="showAdminSwitchModal = true"
     />
 
-    <div class="flex-1 overflow-y-auto p-8">
+    <div class="flex-1 overflow-y-auto p-4 md:p-8">
       <!-- 页面标题与标签切换 -->
       <div class="mb-6 flex items-center justify-between">
         <div>
@@ -361,7 +361,7 @@ onMounted(() => {
       <!-- ========== 概览标签 ========== -->
       <div v-if="activeTab === 'overview'">
         <!-- 用户统计卡片 -->
-        <div class="grid grid-cols-4 gap-6 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
           <div class="bg-white border border-slate-200 rounded-sm shadow-sm p-6">
             <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">注册用户总数</div>
             <div class="text-xl font-bold text-slate-800 font-mono">{{ totalUsers }}</div>
@@ -385,14 +385,14 @@ onMounted(() => {
         </div>
 
         <!-- 项目统计 + 链上状态 -->
-        <div class="grid grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
           <!-- 项目状态分布 -->
           <div class="col-span-2 bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
               <h3 class="text-sm font-bold text-slate-800">项目状态分布</h3>
             </div>
             <div class="p-6">
-              <div class="grid grid-cols-3 gap-4">
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-sm p-4 text-center">
                   <div class="text-xs text-slate-500 mb-1">项目总数</div>
                   <div class="text-xl font-bold text-slate-800 font-mono">{{ totalTasks }}</div>
@@ -509,7 +509,7 @@ onMounted(() => {
       <!-- ========== 争议仲裁标签 ========== -->
       <div v-if="activeTab === 'arbitration'">
         <!-- 仲裁统计卡片 -->
-        <div class="grid grid-cols-4 gap-6 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
           <div class="bg-white border border-slate-200 rounded-sm shadow-sm p-6">
             <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">待仲裁申诉</div>
             <div class="text-xl font-bold text-rose-600 font-mono">{{ pendingAppeals.length }}</div>
