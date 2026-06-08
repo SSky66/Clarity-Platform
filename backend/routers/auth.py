@@ -10,7 +10,7 @@ from models import (
 from schemas import UserCreate, UserResponse, UserLogin
 from core.security import hash_password, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from core.deps import get_current_user
-from chain import create_wallet, check_wallet_exists
+from blockchain_client import create_wallet, check_wallet_exists
 
 router = APIRouter(prefix="/api/auth", tags=["认证"])
 
@@ -19,7 +19,7 @@ def _is_chain_available() -> bool:
     """检查 WeBASE-Front 是否可连接"""
     try:
         import requests
-        from chain import WEBASE_FRONT_URL, GROUP_ID
+        from blockchain_client import WEBASE_FRONT_URL, GROUP_ID
         resp = requests.get(f"{WEBASE_FRONT_URL}/WeBASE-Front/{GROUP_ID}/web3/clientVersion", timeout=3)
         return resp.status_code == 200
     except Exception:

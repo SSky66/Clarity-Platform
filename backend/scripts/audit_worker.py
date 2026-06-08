@@ -1,7 +1,16 @@
 /"""
-[DEPRECATED] 此文件已废弃，请使用 scripts/audit_worker.py
-保留此文件是为了兼容现有引用，将在后续版本中移除。
+审计工作器 (Audit Worker)
+========================
+离线执行模型审计任务，从数据库读取待审计项目，
+在隔离环境中运行模型推理，生成审计指标和可视化报告。
+
+原文件: backend/script_audit.py
+现位置: backend/scripts/audit_worker.py
+
+运行方式:
+    cd backend && python scripts/audit_worker.py --task-id <任务ID>
 """
+
 from ultralytics import YOLO
 from pathlib import Path
 import numpy as np

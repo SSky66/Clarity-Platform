@@ -17,7 +17,7 @@ from models import (
 from schemas import TaskResponse
 from core.deps import get_current_user
 from core.chain_utils import insert_chain_event
-from core.settlement import finalize_task
+from core.settlement_calc import finalize_task
 
 router = APIRouter(prefix="/api", tags=["管理"])
 
@@ -258,7 +258,7 @@ def admin_deploy_contract(
         raise HTTPException(403, "仅系统管理员可部署合约")
 
     import json
-    from chain import deploy_contract, CONTRACT_ABIS
+    from blockchain_client import deploy_contract, CONTRACT_ABIS
 
     if abi_json:
         abi = json.loads(abi_json)

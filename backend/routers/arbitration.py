@@ -16,7 +16,7 @@ from schemas import (
 )
 from core.deps import get_current_user
 from core.chain_utils import insert_chain_event
-from core.settlement import finalize_task
+from core.settlement_calc import finalize_task
 
 router = APIRouter(prefix="/api/appeals", tags=["仲裁"])
 

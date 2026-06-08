@@ -52,7 +52,7 @@ def _settle_reputation(
     # 合约同步钩子：链上信誉结算
     if CHAIN_SYNC_ENABLED and supplier and manufacturer:
         try:
-            from chain import settle_reputation_onchain
+            from blockchain_client import settle_reputation_onchain
             contracts = get_contract_addresses(db)
             identity_contract = contracts.get("identity_contract")
             if identity_contract:
@@ -85,7 +85,7 @@ def _update_claim_count_onchain(db: Session, manufacturer: User):
         return
 
     try:
-        from chain import update_claim_count_onchain
+        from blockchain_client import update_claim_count_onchain
         contracts = get_contract_addresses(db)
         identity_contract = contracts.get("identity_contract")
         if identity_contract:

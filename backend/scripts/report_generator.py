@@ -1,9 +1,13 @@
 /"""
-[DEPRECATED] 此文件已废弃，请使用 scripts/report_generator.py
-保留此文件是为了兼容现有引用，将在后续版本中移除。
-
 审计报告 PDF 生成器（预留框架）
 ========================================
+
+原文件: backend/script_report.py
+现位置: backend/scripts/report_generator.py
+
+运行方式:
+    cd backend && python scripts/report_generator.py --task-id <任务ID>
+"""
 
 职责:
   - 从数据库读取审计指标和项目信息

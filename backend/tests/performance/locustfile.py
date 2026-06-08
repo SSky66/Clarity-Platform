@@ -1,14 +1,14 @@
 /"""
-[DEPRECATED] 此文件已废弃，请使用 tests/performance/locustfile.py
-保留此文件是为了兼容现有引用，将在后续版本中移除。
-
 Locust压力测试脚本
 模拟多审计节点并发提交任务，对模型推理与结果回传接口进行压力测试
 
+原文件: backend/locustfile.py
+现位置: backend/tests/performance/locustfile.py
+
 运行方式:
-    locust -f locustfile.py --host=http://localhost:8000
+    cd backend && locust -f tests/performance/locustfile.py --host=http://localhost:8000
 Headless 模式:
-    locust -f locustfile.py --host=http://localhost:8000 -u 100 -r 10 -t 60s --headless --csv=locust_result
+    cd backend && locust -f tests/performance/locustfile.py --host=http://localhost:8000 -u 100 -r 10 -t 60s --headless --csv=locust_result
 """
 
 import random

@@ -103,7 +103,7 @@ def _mock_chain_calls():
     Mock链上交互，避免测试时连接 WeBASE-Front。
     通过monkeypatch 替换chain.py中的关键函数。
     """
-    import chain as chain_module
+    import blockchain_client as chain_module
     # 保存原始函数（可选，用于恢复）
     if not hasattr(chain_module, "_original_create_wallet"):
         chain_module._original_create_wallet = getattr(chain_module, "create_wallet", None)

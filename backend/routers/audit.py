@@ -14,7 +14,7 @@ from models import (
 from schemas import TaskResponse, AuditSubmitPayload
 from core.deps import get_current_user
 from core.chain_utils import insert_chain_event
-from core.settlement import finalize_task
+from core.settlement_calc import finalize_task
 
 router = APIRouter(prefix="/api/tasks", tags=["审计"])
 

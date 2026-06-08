@@ -544,7 +544,7 @@ def _is_chain_available() -> bool:
     """检查 WeBASE-Front 是否可连接"""
     try:
         import requests
-        from chain import WEBASE_FRONT_URL
+        from blockchain_client import WEBASE_FRONT_URL
         resp = requests.get(f"{WEBASE_FRONT_URL}/WeBASE-Front/1/web3/clientVersion", timeout=3)
         return resp.status_code == 200
     except Exception:
@@ -566,7 +566,7 @@ def ensure_builtin_admin():
 
             if chain_available:
                 try:
-                    from chain import create_wallet, check_wallet_exists
+                    from blockchain_client import create_wallet, check_wallet_exists
                     exists_info = check_wallet_exists(sign_user_id)
                     if exists_info.get("address"):
                         wallet_address = exists_info["address"]
@@ -607,7 +607,7 @@ def ensure_builtin_admin():
                     return
 
                 try:
-                    from chain import create_wallet, check_wallet_exists
+                    from blockchain_client import create_wallet, check_wallet_exists
                     exists_info = check_wallet_exists(sign_user_id)
                     if exists_info.get("address"):
                         admin.wallet_address = exists_info["address"]

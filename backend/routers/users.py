@@ -6,7 +6,7 @@ from models import User, UserRole, BASE_REPUTATION, get_db
 from schemas import UserResponse
 from core.deps import get_current_user
 from core.security import verify_password, hash_password
-from chain import create_wallet, check_wallet_exists
+from blockchain_client import create_wallet, check_wallet_exists
 
 router = APIRouter(prefix="/api/users", tags=["用户"])
 

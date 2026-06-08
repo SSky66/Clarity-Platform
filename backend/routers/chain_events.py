@@ -9,7 +9,7 @@ from models import ChainEvent, get_db
 from schemas import ChainEventResponse, ChainStatsResponse
 from core.deps import get_current_user
 from core.chain_utils import get_contract_addresses, get_admin_sign_info
-from chain import get_chain_stats
+from blockchain_client import get_chain_stats
 
 router = APIRouter(prefix="/api", tags=["链上事件"])
 
