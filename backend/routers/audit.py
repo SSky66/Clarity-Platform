@@ -96,7 +96,7 @@ def submit_report(
         false_kill_threshold=false_kill_th,
         decision=decision.value,
         verdict=decision.value,
-        report_hash=payload.report_hash or f"mock_report_hash_{__import__('uuid').uuid4().hex[:16]}",
+        report_hash=payload.report_hash or f"report_hash_{__import__('uuid').uuid4().hex[:16]}",
         auditor_node_id=current_user.id,
     )
     db.add(report)

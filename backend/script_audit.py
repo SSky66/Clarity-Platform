@@ -1,4 +1,4 @@
-/"""
+"""
 [DEPRECATED] 此文件已废弃，请使用 scripts/audit_worker.py
 保留此文件是为了兼容现有引用，将在后续版本中移除。
 """

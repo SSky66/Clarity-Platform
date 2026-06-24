@@ -244,8 +244,8 @@ def upload_dataset(
     with open(filepath, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
-    fake_hash = f"ipfs://mock/{filename}"
-    task.dataset_ipfs_hash = fake_hash
+    file_hash = f"sha256://{__import__('hashlib').sha256(filename.encode()).hexdigest()[:16]}"
+    task.dataset_ipfs_hash = file_hash
     db.commit()
 
     insert_chain_event(
@@ -282,11 +282,11 @@ def upload_model(
     with open(filepath, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
-    fake_hash = f"ipfs://mock/{filename}"
+    file_hash = f"sha256://{__import__('hashlib').sha256(filename.encode()).hexdigest()[:16]}"
     history = task.model_hash_history or []
     from datetime import datetime
     history.append({
-        "hash": fake_hash,
+        "hash": file_hash,
         "uploaded_at": datetime.utcnow().isoformat(),
         "filename": file.filename
     })
